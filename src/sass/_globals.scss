@@ -1,0 +1,28 @@
+
+//Globals variables
+$dark-blue: hsl(209, 23%, 22%); //dark mode elements
+$very-dark-blue: hsl(207, 26%, 17%); //dark mode background
+$very-dark-blue-txt: hsl(200, 15%, 8%); //light mode text
+$dark-gray: hsl(0, 0%, 52%); //light mode input
+$very-light-gray: hsl(0, 0%, 98%); //light mode background
+$white: hsl(0, 0%, 100%); //dark mode text and light mode elements
+$box-shadow: 0px 0px 8px 3px rgba(0,0,0,0.05);
+
+html{
+  font-size: 100%;
+  box-sizing: border-box;
+}
+
+body{
+  font-family: 'Nunito Sans', sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+.bold{
+  font-weight: 600;
+}
+
+.bolder{
+  font-weight: 800;
+}
