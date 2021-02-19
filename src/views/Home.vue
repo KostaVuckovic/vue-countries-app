@@ -4,7 +4,7 @@
       <div class="search-input">
 
         <i class="icon fas fa-search"></i>
-        <i class="x-icon fas fa-times" @click="reset"></i>
+        <i class="x-icon fas fa-times" @click="reset" v-if="query.length > 0"></i>
         <input class="input-field"
           placeholder="Search for a country"
           v-model="query"
@@ -13,14 +13,16 @@
           @focus="showResults = true"
         >
         
-        <div class="result-container" v-if="results.length > 0 && showResults">
+        <div class="result-container" v-if="query.length > 0 && showResults">
           <div class="result" v-for="(result, index) in results" :key="index">
             <div class="result-info">
               <p class="result-name bolder">{{result.name}}</p>
               <p><span class="bold">Capital city:</span> {{result.capital}}</p>
               <p><span class="bold">Native name:</span> {{result.nativeName}}</p>
             </div>
-            <img class="result-img" :src="result.flag" alt="flag">
+            <div class="result-img">
+              <img :src="result.flag" alt="flag">
+            </div>
           </div>
           <div class="no-results" v-if="results.length < 1">
             <p>No results for '<span class="bold">{{query}}</span>'</p>
@@ -28,15 +30,17 @@
         </div>
         
       </div>
-      
-      <select class="select" @change="filterRegion($event)">
-        <option value="0">Filer By Region</option>
-        <option value="Africa">Africa</option>
-        <option value="Americas">Americas</option>
-        <option value="Asia">Asia</option>
-        <option value="Europe">Europe</option>
-        <option value="Oceania">Oceania</option>
-      </select>
+      <div class="select" @click="showOptions = !showOptions">
+        <p>Filter by Region</p>
+        <i class="fas fa-chevron-down arrow"></i>
+        <div class="options" v-if="showOptions">
+          <button class="option" @click="filterRegion($event)">Africa</button>
+          <button class="option" @click="filterRegion($event)">Americas</button>
+          <button class="option" @click="filterRegion($event)">Asia</button>
+          <button class="option" @click="filterRegion($event)">Europe</button>
+          <button class="option" @click="filterRegion($event)">Oceania</button>
+        </div>
+      </div>
     </div>
     <div class="countries">
       <div class="country" v-for="(country, index) in allCountries" :key="index" @click="showDetails(country.name)">
@@ -87,25 +91,26 @@ export default {
     // Search countries 
     let showResults = ref(false)
     let query = ref('');
-
-    const searchCountries = (query) => {
-      const regex = new RegExp(`${query}`)
-      results.value = allCountries.value.filter(country => regex.test(country.name))
-    }
-
     const results = ref([])
 
-    // Filter countries 
-    const filterRegion = (event) => {
-      axios.get(`https://restcountries.eu/rest/v2/region/${event.target.value.toLowerCase()}`)
-        .then(response => {
-          allCountries.value = response.data
-        })
+    const searchCountries = (query) => {
+      const regex = new RegExp(`${query}`, 'i')
+      results.value = allCountries.value.filter(country => regex.test(country.name))
     }
 
     const reset = () => {
       query.value = ''
     }
+
+    // Filter countries 
+    const filterRegion = (event) => {
+      axios.get(`https://restcountries.eu/rest/v2/region/${event.target.innerHTML.toLowerCase()}`)
+        .then(response => {
+          allCountries.value = response.data
+        })
+    }
+
+    const showOptions = ref(false)
 
     return {
       allCountries,
@@ -116,7 +121,8 @@ export default {
       searchCountries,
       results,
       showResults,
-      reset
+      reset,
+      showOptions
     }
   }
 }
@@ -164,7 +170,7 @@ export default {
         border-radius: 5px;
         border: none;
         font-size: 16px;
-        width: calc(100%-5em);
+        width: 204px;
         color: $dark-gray;
         font-family: inherit;
           &:focus{
@@ -176,9 +182,29 @@ export default {
         background-color: $white;
         border-radius: 5px;
         box-shadow: $box-shadow;
-        width: 400px;
+        width: 100%;
         z-index: 5;
         margin-top: 1em;
+        box-shadow: 0px 0px 8px 3px rgba(0,0,0,0.25);
+        max-height: 650px;
+        overflow: scroll;
+          @include breakpoint-up(medium){
+            width: 450px;
+          }
+          @include breakpoint-up(xlarge){
+            width: 500px;
+          }
+          &::-webkit-scrollbar{
+            width: .4em;
+          }
+          &::-webkit-scrollbar-track{
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+          }
+          &::-webkit-scrollbar-thumb{
+            background-color: rgb(139, 139, 139);
+            border-radius: 10px;
+          }
           .no-results{
             padding: 1em;
               p{
@@ -190,26 +216,38 @@ export default {
             display: flex;
             justify-content: space-between;
               .result-info{
-                width: 50%;
+                width: 60%;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
                   p:first-child{
-                    margin: 0;
+                    margin: 0 0 .5em 0;
                     font-size: 1.1em;
                     padding-bottom: .2em;
                     border-bottom: 1px solid $dark-gray;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
                   }
                   p{
                     margin: 0;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
                   }
               }
               .result-img{
-                width: 40%;
+                width: 25%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                  img{
+                    width: 100%;
+                  }
               }
             &:hover{
               cursor: pointer;
-              background-color: $white;
+              background-color: hsl(0, 0%, 91%);
             }
           }
       }
@@ -217,25 +255,53 @@ export default {
     .select{
       position: relative;
       padding: 1.5em 3em;
-      appearance: none;
+      background-color: white;
       border: none;
-      padding: 1em 2em;
+      padding: 1em 3em 1em 1em;
       font-family: inherit;
-      outline: none;
+      width: 150px;
       border: 1px solid $very_light_gray;
       box-shadow: $box-shadow;
       cursor: pointer;
       border-radius: 5px;
       margin-top: 2em;
       z-index: 1;
-        &::after{
-          content: "\f004";
-          font-family: "FontAwesome";
-        }
+      display: flex;
+      align-items: center;
       @include breakpoint-up(medium){
         margin: 0;
       }
+      p{
+        margin: 0;
+      }
+      .arrow{
+        position: absolute;
+        top: 1.2em;
+        right: 1em;
+      }
+      .options{
+        background-color: white;
+        position: absolute;
+        top: 56px;
+        left: 0;
+        padding: 1em;
+        border-radius: 5px;
+        box-shadow: $box-shadow;
+          .option{
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            text-align: start;
+            font-size: inherit;
+            color: $very-dark-blue;
+            cursor: pointer;
+            outline: none;
+            margin: .2em 0;
+          }
+      }
     }
+    
     
   }
     .countries{
@@ -254,7 +320,7 @@ export default {
         font-size: 14px;
         margin-bottom: 3em;
         box-shadow: $box-shadow;
-        max-width: 300px;
+        max-width: 250px;
         &:hover{
           cursor: pointer;
         }
